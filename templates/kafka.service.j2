@@ -1,0 +1,11 @@
+[Unit]
+Description=kafka daemon
+
+[Service]
+User={{ kafka_unix_user }}
+Group={{ kafka_unix_group }}
+EnvironmentFile={{ kafka_environment_file }}
+ExecStart=/bin/bash {{ kafka_app_dir }}/bin/kafka-run-class.sh kafka.Kafka {{ kafka_server_properties }}
+TimeoutSec=10
+TimeoutStopSec=60
+LimitNOFILE=1000000

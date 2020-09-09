@@ -1,0 +1,21 @@
+---
+- name: "deploy {{ kafka_systemd_service_file }} systemd unit"
+  template:
+    src: templates/kafka.service.j2
+    dest: "{{ kafka_systemd_service_file }}"
+    owner: "{{ kafka_unix_user }}"
+    group: "{{ kafka_unix_group }}"
+  notify:
+    - reload systemd
+    - restart kafka service
+  tags:
+    - kafka
+
+- name: start kafka
+  service:
+    enabled: yes
+    name: kafka
+    state: started
+  tags:
+    - kafka
+...

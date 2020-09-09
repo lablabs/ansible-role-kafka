@@ -1,0 +1,15 @@
+---
+- name: "create {{ kafka_unix_user }} user"
+  user:
+    name: "{{ kafka_unix_user }}"
+    state: present
+  tags:
+    - kafka
+
+- name: "create {{ kafka_unix_group }} user"
+  group:
+    name: "{{ kafka_unix_group }}"
+    state: present
+  tags:
+    - kafka
+...

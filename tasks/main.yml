@@ -1,0 +1,14 @@
+---
+
+- name: Check if required variables are defined
+  assert:
+    that:
+      - kafka_zookeeper_exhibitor_url is defined
+      - kafka_zookeeper_chroot is defined
+      - kafka_jvm_heap_opts is defined
+
+- import_tasks: install.yml
+- import_tasks: user.yml
+- import_tasks: config.yml
+- import_tasks: service.yml
+...

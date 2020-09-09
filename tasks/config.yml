@@ -1,0 +1,71 @@
+---
+- name: "create {{ kafka_log_dirs }} dir for kafka data"
+  file:
+    state: directory
+    path: "{{ kafka_log_dirs }}"
+    owner: "{{ kafka_unix_user }}"
+    group: "{{ kafka_unix_group }}"
+    mode: 0775
+  tags:
+    - kafka
+
+- name: "create {{ kafka_server_logs_dir }} dir for kafka server logs"
+  file:
+    state: directory
+    path: "{{ kafka_server_logs_dir }}"
+    owner: "{{ kafka_unix_user }}"
+    group: "{{ kafka_unix_group }}"
+    mode: 0775
+  tags:
+    - kafka
+
+- name: "ensure the correct owner on kafka logs dir"
+  file:
+    state: directory
+    path: "{{ kafka_log_dirs }}"
+    owner: "{{ kafka_unix_user }}"
+    group: "{{ kafka_unix_group }}"
+    recurse: "yes"
+  tags:
+    - kafka
+
+- name: "Get zookeeper nodes"
+  uri:
+    url: "{{ kafka_zookeeper_exhibitor_url }}"
+    return_content: yes
+  register: exhibitor_out
+  tags:
+    - kafka
+
+- name: "Check zookeeper nodes count"
+  fail:
+    msg: "Expected {{ kafka_zookeeper_expected_num_of_nodes }} zookeeper nodes. Only {{ (exhibitor_out.content | from_json).servers|length }} nodes were found."
+  when: (exhibitor_out.content | from_json).servers|length != kafka_zookeeper_expected_num_of_nodes
+  tags:
+    - kafka
+
+- name: "deploy server.properties"
+  template:
+    src: "templates/server.properties.j2"
+    dest: "{{ kafka_server_properties }}"
+    owner: "{{ kafka_unix_user }}"
+    group: "{{ kafka_unix_group }}"
+    mode: 0644
+  vars:
+    kafka_zookeeper_nodes: "{{ (exhibitor_out.content | from_json).servers }}"
+    kafka_zookeeper_port: "{{ (exhibitor_out.content | from_json).port }}"
+    kafka_advertised_ip: "{{ hostvars[inventory_hostname]['network_interfaces'][kafka_network_interfaces]['private_ip_address'] }}"
+  notify:
+    - restart kafka service
+  tags:
+    - kafka
+
+- name: "deploy {{ kafka_environment_file }} environment file"
+  template:
+    src: templates/environment.file.j2
+    dest: "{{ kafka_environment_file }}"
+  notify:
+    - restart kafka service
+  tags:
+    - kafka
+...

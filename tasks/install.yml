@@ -1,0 +1,63 @@
+---
+- name: "install required apt packages"
+  apt:
+    name: "{{ kafka_required_apt_packages }}"
+    state: present
+    update_cache: yes
+  tags:
+    - kafka
+
+- name: "download kafka binary package archive"
+  get_url:
+    url: "{{ kafka_url }}"
+    dest: "{{ kafka_bin_tmp }}"
+    timeout: 600
+  tags:
+    - kafka
+
+- name: "download the corresponding cryptographic signature file"
+  get_url:
+    url: "{{ kafka_sig_url }}"
+    dest: "{{ kafka_sig_tmp }}"
+    timeout: 600
+  tags:
+    - kafka
+
+- name: "download the kafka PGP keys"
+  get_url:
+    url: "{{ kafka_keys_url }}"
+    dest: "{{ kafka_keys_tmp }}"
+    timeout: 600
+  changed_when: False
+  tags:
+    - kafka
+
+- name: "import kafka PGP keys"
+  shell: "gpg --import {{ kafka_keys_tmp }}"
+  changed_when: False
+  tags:
+    - kafka
+
+- name: "verify kafka binary package archive authenticity"
+  shell: "gpg --verify {{ kafka_sig_tmp }} {{ kafka_bin_tmp }}"
+  changed_when: False
+  tags:
+    - kafka
+
+- name: "extract downloaded kafka archive"
+  unarchive:
+    copy: no
+    creates: "{{ kafka_base_dir }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+    dest: "{{ kafka_base_dir }}"
+    src: "{{ kafka_bin_tmp }}"
+  tags:
+    - kafka
+
+- name: "create kafka {{ kafka_base_dir }}/kafka symlink"
+  file:
+    src: "{{ kafka_base_dir }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+    dest: "{{ kafka_app_dir }}"
+    state: link
+  tags:
+    - kafka
+...

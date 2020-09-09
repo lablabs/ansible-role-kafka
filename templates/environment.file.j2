@@ -1,0 +1,7 @@
+KAFKA_LOG4J_OPTS="-Dlog4j.configuration=file:{{ kafka_app_dir }}/config/log4j.properties"
+JMX_PORT="{{ kafka_jmx_port }}"
+
+KAFKA_HEAP_OPTS="{{ kafka_jvm_heap_opts }}"
+KAFKA_GC_LOG_OPTS="{{ kafka_jvm_gc_log_opts }}"
+KAFKA_JVM_PERFORMANCE_OPTS="{{ kafka_jvm_performance_opts }}"
+KAFKA_JMX_OPTS="{{ kafka_jmv_jmx_opts }}"
